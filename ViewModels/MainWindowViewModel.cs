@@ -4,11 +4,15 @@ namespace Messanger.ViewModels
 {
     internal class MainWindowViewModel : ViewModel
     {
-        private string _Title;
-        public string Title
+        #region Название окна
+        private string _TitleWindow = "Hello World!";
+        public string TitleWindow
         {
-            get => _Title;
-            set => Set(ref _Title, value);
-        }
+            get => _TitleWindow;
+            set => Set(ref _TitleWindow, value);
+        } 
+        #endregion
+        
+
     }
 }
