@@ -12,7 +12,7 @@ namespace Messanger.ViewModels
             set => Set(ref _TitleWindow, value);
         } 
         #endregion
-        
+            
 
     }
 }
