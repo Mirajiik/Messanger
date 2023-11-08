@@ -10,6 +10,11 @@ namespace Server.NetworkStreamExtension
             stream.Write(message.GetBytes());
         }
 
+        public static async Task WriteAsync(this NetworkStream stream, Message message)
+        {
+            await stream.WriteAsync(message.GetBytes());
+        }
+
         public static IEnumerable<Message> Read(this NetworkStream stream)
         {
             byte[] bytesRead;

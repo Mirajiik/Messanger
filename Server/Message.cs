@@ -24,7 +24,7 @@ namespace nsMessage
             if (bytes.Count() > sizeMessageBytes)
                 _messageType = EnumMessageType.PartMessage;
             else
-                _messageType = EnumMessageType.EndFile;
+                _messageType = EnumMessageType.EndMessage;
         }
         public Message(byte[] bytes, EnumMessageType messageType)
         {

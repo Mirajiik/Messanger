@@ -1,5 +1,6 @@
 ﻿using System.IO;
 using System.Net;
+using System.Net.Http;
 using System.Net.Sockets;
 using System.Text;
 using nsMessage;
@@ -12,7 +13,7 @@ namespace Server
         static void Main(string[] args)
         {
             Server.Start();
-            Console.WriteLine("End program");
+            Console.WriteLine("Enter for disconnect");
             Console.ReadLine();
         }
     }
@@ -20,8 +21,8 @@ namespace Server
     static public class Server
     {
         static private TcpListener tcpListener;
+        static private List<TcpClient> clients = new List<TcpClient>();
         static private FileStream fileStream = new FileStream("HistoryMessage.txt", FileMode.Append);
-        static private bool ServerIsRunning;
         static Server()
         {
             Console.WriteLine("Server Start");
@@ -29,7 +30,6 @@ namespace Server
             {
                 tcpListener = new TcpListener(IPAddress.Loopback, 8080);
                 tcpListener.Start();
-                ServerIsRunning = true;
             }
             catch (Exception ex)
             {
@@ -38,19 +38,20 @@ namespace Server
                 throw;
             }
             AppDomain.CurrentDomain.ProcessExit += new EventHandler(CloseServer);
-            Task taskAcceptingConnections = new Task(AcceptingConnections);
-            taskAcceptingConnections.RunSynchronously();
+            AcceptingConnections();
         }
 
         static public void Start() { }
 
-        static void CloseServer(object? sender, EventArgs e)
+        static private void CloseServer(object? sender, EventArgs e)
         {
-            Console.WriteLine("END PROGRAM");
-            Console.ReadLine();
-            ServerIsRunning = false;
+           Console.WriteLine("END PROGRAM");
             try
             {
+                foreach (var client in clients)
+                {
+                    client.Close();
+                }
                 tcpListener.Stop();
                 fileStream.Close();
             }
@@ -60,38 +61,53 @@ namespace Server
             }
         }
 
-        static async void AcceptingConnections()
+        static private async void AcceptingConnections()
         {
+            int i = 0;
             while (true)
             {
-                Console.WriteLine("Ожидание пользователя");
                 TcpClient userSocket = await tcpListener.AcceptTcpClientAsync();
-                Task taskUserConnect = UserConnect(userSocket);
-                await taskUserConnect;
-                /*Task taskUserConnect = Task.Run(() => UserConnect(userSocket));
-                Console.WriteLine(Task.CurrentId);
-                //await taskUserConnect;
-                //taskUserConnect.Start();
-                Console.WriteLine(taskUserConnect.Status);*/
+                clients.Add(userSocket);
+                Task.Run(async () => await UserConnectAsync(userSocket));
+                Console.WriteLine($"{i++} запущен");
             }
         }
 
-        static async Task UserConnect(TcpClient client)
+        static private async Task UserConnectAsync(TcpClient client)
         {
             Console.WriteLine("Start Task");
             using var stream = client.GetStream();
             {
-                while (ServerIsRunning)
+                while (client.Connected)
                 {
                     Console.WriteLine("Wait message");
                     foreach (var item in stream.Read())
                     {
                         Console.WriteLine(item.GetText());
-                        await fileStream.WriteAsync(item.BytesMessage);
-                        Console.WriteLine("End Writing");
+                        fileStream.Write(item.BytesMessage);
                     }
                 }
             }
+            Console.WriteLine("Close connect");
+            RemoveConnection(client);
+        }
+
+        static private async Task BroadcastMessageAsync(Message message, TcpClient sourceClient)
+        {
+            foreach (var client in clients)
+            {
+                if (client != sourceClient)
+                {
+                    await client.GetStream().WriteAsync(message);
+                    await client.GetStream().FlushAsync();
+                }
+            }
+        }
+
+        static private void RemoveConnection(TcpClient client)
+        {
+            clients.Remove(client);
+            client?.Close();
         }
     }
 }
