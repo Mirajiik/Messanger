@@ -85,6 +85,8 @@ namespace Server
                     {
                         Console.WriteLine(item.GetText());
                         fileStream.Write(item.BytesMessage);
+                        Task.Run(async() => await BroadcastMessageAsync(item, client));
+                        Console.WriteLine("Messages broadcasing");
                     }
                 }
             }
