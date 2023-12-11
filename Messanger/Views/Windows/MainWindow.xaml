@@ -6,11 +6,17 @@
         xmlns:vm="clr-namespace:Messanger.ViewModels"
         xmlns:local="clr-namespace:Messanger"
         mc:Ignorable="d"
-        Title="{Binding TitleWindow}" Height="450" Width="800">
+        Title="{Binding TitleWindow}"
+        Height="450"
+        Width="800">
     <Window.DataContext>
-        <vm:MainWindowViewModel/>
+        <vm:MainWindowViewModel />
     </Window.DataContext>
     <Grid>
-        <Button Content="ABCDEF" HorizontalAlignment="Center" VerticalAlignment="Center" Background="Gray" Command="{Binding CloseApplicationCommmand}"/>
+        <Button Content="ABCDEF"
+                HorizontalAlignment="Center"
+                VerticalAlignment="Center"
+                Background="Gray"
+                Command="{Binding CloseApplicationCommmand}" />
     </Grid>
 </Window>
